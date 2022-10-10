@@ -4,7 +4,9 @@ import random
 import numpy as np
 from colorama import Style
 
-from ..utils import get_words, color_map
+from ..data import valid_words
+from ..data import colors
+from ..utils import action_to_word, word_to_action
 from ..config import WORD_LENGTH, GAME_LENGTH, WORDS_FILE
 
 class QWordle(gym.Env):
@@ -24,8 +26,8 @@ class QWordle(gym.Env):
         Reset the environment.
         """
         self.guesses = []
-        self.solution_word = random.choice(get_words(WORDS_FILE))
-        self.solution = [ord(c) - ord('a') for c in self.solution_word]
+        self.solution_word = random.choice(valid_words.words)
+        self.solution = word_to_action(self.solution_word)
         self.board = np.full((GAME_LENGTH, WORD_LENGTH), -1)
         return self.board
 
@@ -63,9 +65,9 @@ class QWordle(gym.Env):
         """
         print("++++++++++++++++++++++++++++++")
         for i, guess in enumerate(self.guesses):
-            word = [chr(ord('A') + c) for c in guess]
+            word = action_to_word(guess)
             for j in range(WORD_LENGTH):
-                print(color_map[self.board[i][j]] + Style.BRIGHT + word[j] + ' ', end='')
+                print(colors.color_map[self.board[i][j]] + Style.BRIGHT + word[j] + ' ', end='')
             print()
         print()
         print("==============================")

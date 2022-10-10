@@ -13,9 +13,8 @@ def sort_words(filename):
     with open(filename, 'w') as f:
         json.dump(words, f)
 
-color_map = {
-        -1: Fore.BLACK,
-        0: Fore.BLACK,
-        1: Fore.YELLOW,
-        2: Fore.GREEN,
-    }
+def word_to_action(word):
+    return [ord(c) - ord('a') for c in word]
+
+def action_to_word(action):
+    return [chr(ord('A') + c) for c in action]
