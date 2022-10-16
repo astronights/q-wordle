@@ -28,6 +28,7 @@ class QLearn(BaseModel):
             state = get_state(letters) 
             done = False
             while(not done):
+                print(state)
                 action_probabilities = self.policyFunction(state)
                 action_strategy = np.random.choice(np.arange(len(action_probabilities)), p = action_probabilities)
                 action = self.strategies[action_strategy].get_action()
@@ -38,7 +39,6 @@ class QLearn(BaseModel):
                 q_target = reward + self.gamma * self.Q[next_state['green'], next_state['yellow'], next_state['missing'], next_best_action]
                 self.Q[state['green'], state['yellow'], state['missing'], action_strategy] = q_target -  self.Q[state['green'], state['yellow'], state['missing'], action_strategy]
                 state = next_state
-            print(self.Q)
 
     def test(self):
         pass
