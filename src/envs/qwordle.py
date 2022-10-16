@@ -19,7 +19,10 @@ class QWordle(gym.Env):
         Initialize the environment.
         """
         self.action_space = spaces.MultiDiscrete([26] * WORD_LENGTH)
-        self.observation_space = spaces.Box(low=0, high=2, shape=(GAME_LENGTH, WORD_LENGTH)) #Check dtype=int
+        self.observation_space = spaces.Dict({
+            'board': spaces.Box(low=-1, high=2, shape=(GAME_LENGTH, WORD_LENGTH), dtype=np.int8),
+            'letters': spaces.Box(low=-1, high=2, shape=(26,), dtype=np.int8)
+        })
 
     def reset(self):
         """
@@ -29,7 +32,8 @@ class QWordle(gym.Env):
         self.solution_word = random.choice(valid_words.words)
         self.solution = word_to_action(self.solution_word)
         self.board = np.full((GAME_LENGTH, WORD_LENGTH), -1)
-        return self.board
+        self.letters = np.full((26,), -1)
+        return {'board': self.board, 'letters': self.letters}
 
     def _check_guess(self, solution, pred):
         """
@@ -44,7 +48,16 @@ class QWordle(gym.Env):
         reward = None
         done = False
 
-        self.board[len(self.guesses)] = self._check_guess(self.solution, action)
+        res = self._check_guess(self.solution, action)
+        self.board[len(self.guesses)] = res
+
+        for i, x in enumerate(res):
+            if x == 2:
+                self.letters[action[i]] = 2
+            elif x == 1:
+                self.letters[action[i]] = 1
+            else:
+                self.letters[action[i]] = 0
 
         if(np.all(self.board[len(self.guesses)] == 2)):
             reward = 1
@@ -57,7 +70,7 @@ class QWordle(gym.Env):
 
         self.guesses.append(action)
 
-        return(self.board, reward, done, {})
+        return({'board': self.board, 'letters': self.letters}, reward, done, {})
 
     def render(self):
         """
@@ -69,6 +82,9 @@ class QWordle(gym.Env):
             for j in range(WORD_LENGTH):
                 print(colors.color_map[self.board[i][j]] + Style.BRIGHT + word[j] + ' ', end='')
             print()
+        print()
+        for i in range(26):
+            print(colors.color_map[self.letters[i]] + Style.BRIGHT + chr(ord('A') + i) + ' ', end='')
         print()
         print("==============================")
         print()

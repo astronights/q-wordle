@@ -1,7 +1,8 @@
-from src.models import no_learn_model
+from src.models import no_learn_model, qlearn
 
 def main():
     model = no_learn_model.NoLearnModel()
+    # model = qlearn.QLearn()
     model.train()
     model.test()
 
