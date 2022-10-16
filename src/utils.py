@@ -1,5 +1,5 @@
 import json
-from colorama import Fore
+import numpy as np
 
 def get_words(filename):
     words = None
@@ -19,13 +19,13 @@ def word_to_action(word):
 def action_to_word(action):
     return [chr(ord('A') + c) for c in action]
 
-def get_state(guess, word, state=None):
-    state = {'green': 0, 'yellow': 0, 'grey': 0} if state is None else state
-    for i, c in enumerate(guess):
-        if c == word[i]:
-            state['green'] += 1
-        elif c in word:
+def get_state(letters):
+    state = {'green': 0, 'yellow': 0, 'missing': 0} 
+    for letter in letters:
+        if letter == 0:
+            state['missing'] += 1
+        elif letter == 1:
             state['yellow'] += 1
-        else:
-            state['grey'] += 1
+        elif letter == 2:
+            state['green'] += 1
     return state
