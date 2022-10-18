@@ -29,3 +29,23 @@ def get_state(letters):
         elif letter == 2:
             state['green'] += 1
     return state
+
+def calculate_glp(words):
+    count = len(words)
+    prb = [[0 for _ in range(5)] for _ in range(26)]
+
+    # get word counts
+    for word in words:
+        values = word_to_action(word)
+        for idx, letter in enumerate(values):
+            prb[letter][idx] += 1
+
+    # get probabilities
+    for letter in range(len(prb)):
+        for pos in range(len(prb[letter])):
+            #laplace
+            if prb[letter][pos] == 0:
+                prb[letter][pos] = 1/count
+            else:
+                prb[letter][pos] = prb[letter][pos]/count
+    return prb
