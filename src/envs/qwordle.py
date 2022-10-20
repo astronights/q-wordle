@@ -4,6 +4,8 @@ import random
 import numpy as np
 from colorama import Style
 
+from collections import Counter
+
 from ..data import valid_words
 from ..data import colors
 from ..utils import action_to_word, word_to_action
@@ -21,6 +23,7 @@ class QWordle(gym.Env):
         self.action_space = spaces.MultiDiscrete([26] * WORD_LENGTH)
         self.observation_space = spaces.Dict({
             'board': spaces.Box(low=-1, high=2, shape=(GAME_LENGTH, WORD_LENGTH), dtype=np.int8),
+            'guesses': spaces.Box(low=0, high=26, shape=(GAME_LENGTH, WORD_LENGTH), dtype=np.int8),
             'letters': spaces.Box(low=-1, high=2, shape=(26,), dtype=np.int8)
         })
 
@@ -33,13 +36,29 @@ class QWordle(gym.Env):
         self.solution = word_to_action(self.solution_word)
         self.board = np.full((GAME_LENGTH, WORD_LENGTH), -1)
         self.letters = np.full((26,), -1)
-        return {'board': self.board, 'letters': self.letters}
+        return {'board': self.board, 'guesses': self.guesses, 'letters': self.letters}
 
     def _check_guess(self, solution, pred):
         """
         Check if guess is correct.
         """
-        return [(2 if x == solution[i] else ( 1 if x in solution else 0)) for i, x in enumerate(pred)]
+        res = [None] * WORD_LENGTH
+        solution_counter = Counter(solution)
+        for i, x in enumerate(pred):
+            if x == solution[i]:
+                solution_counter[x] -= 1
+                res[i] = 2
+        for i, x in enumerate(pred):
+            if(res[i] is None):
+                if x in solution:
+                    if(solution_counter[x] > 0):
+                        res[i] = 1
+                    else:
+                        res[i] = 0
+                    solution_counter[x] -= 1
+                else:
+                    res[i] = 0
+        return res
 
     def step(self, action):
         """
@@ -47,7 +66,6 @@ class QWordle(gym.Env):
         """
         reward = None
         done = False
-
         res = self._check_guess(self.solution, action)
         self.board[len(self.guesses)] = res
 
@@ -55,22 +73,26 @@ class QWordle(gym.Env):
             if x == 2:
                 self.letters[action[i]] = 2
             elif x == 1:
-                self.letters[action[i]] = 1
+                if(self.letters[action[i]] < 2):
+                    self.letters[action[i]] = 1
             else:
-                self.letters[action[i]] = 0
+                if(self.letters[action[i]] < 1):
+                    self.letters[action[i]] = 0
 
+        solved = False
         if(np.all(self.board[len(self.guesses)] == 2)):
-            reward = 1
+            reward = 100
             done = True
+            solved = True
         elif(len(self.guesses) == GAME_LENGTH - 1):
-            reward = -1
+            reward = -10
             done = True
         else:
-            reward = 0
+            reward = res.count(2)*5 + res.count(1)*3 - res.count(0)*1
 
         self.guesses.append(action)
 
-        return({'board': self.board, 'letters': self.letters}, reward, done, {})
+        return({'board': self.board, 'guesses': self.guesses, 'letters': self.letters}, reward, done, {'solved': solved})
 
     def render(self):
         """

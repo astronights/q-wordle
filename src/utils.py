@@ -21,14 +21,16 @@ def action_to_word(action):
     return [chr(ord('A') + c) for c in action]
 
 def get_state(letters):
-    state = {'green': 0, 'yellow': 0, 'missing': 0} 
+    state = {'green': 0, 'yellow': 0}
     for letter in letters:
-        if letter == 0:
-            state['missing'] += 1
-        elif letter == 1:
+        # if letter == 0:
+        #     state['missing'] += 1
+        if letter == 1:
             state['yellow'] += 1
         elif letter == 2:
             state['green'] += 1
+        else:
+            pass
     return state
 '''
 Description:
@@ -121,3 +123,6 @@ def next_highest_LL_smart(words, d, prb):
     lls = calculate_LL([word for word in words if is_candidate(word, d)], prb)
     return max(lls, key=lls.get)
 
+
+def invert_dict(index):
+    return { v: k for k, l in index.items() for v in l }

@@ -7,7 +7,7 @@ class BaseModel:
         self.config = config
 
     @abstractmethod
-    def train(self, trial, iter):
+    def train(self, iter):
         raise NotImplementedError
 
     @abstractmethod
