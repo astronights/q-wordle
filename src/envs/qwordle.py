@@ -9,7 +9,7 @@ from collections import Counter
 from ..data import valid_words
 from ..data import colors
 from ..utils import action_to_word, word_to_action
-from ..config import WORD_LENGTH, GAME_LENGTH, WORDS_FILE
+from ..config import WORD_LENGTH, GAME_LENGTH, WIN_REWARD, LOSE_REWARD, GREEN_REWARD, YELLOW_REWARD, GREY_REWARD
 
 class QWordle(gym.Env):
     """
@@ -81,14 +81,14 @@ class QWordle(gym.Env):
 
         solved = False
         if(np.all(self.board[len(self.guesses)] == 2)):
-            reward = 100
+            reward = WIN_REWARD
             done = True
             solved = True
         elif(len(self.guesses) == GAME_LENGTH - 1):
-            reward = -10
+            reward = LOSE_REWARD
             done = True
         else:
-            reward = res.count(2)*5 + res.count(1)*3 - res.count(0)*1
+            reward = res.count(2)*GREEN_REWARD + res.count(1)*YELLOW_REWARD - res.count(0)*GREY_REWARD
 
         self.guesses.append(action)
 

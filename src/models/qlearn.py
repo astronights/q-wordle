@@ -5,6 +5,7 @@ from ..strategies.highest_ll_smart_strategy import HighestLLSmartStrategy
 from ..strategies.fresh_letters_strategy import FreshLettersStrategy
 from ..envs.qwordle import QWordle
 from ..utils import get_state, word_to_action
+from ..config import WORD_LENGTH, GAME_LENGTH
 
 import numpy as np
 
@@ -14,8 +15,7 @@ class QLearn(BaseModel):
         super().__init__(config)
         self.strategies = []
         self.strategies.extend([RandomStrategy(), HighestLLStrategy(), HighestLLSmartStrategy(), FreshLettersStrategy()])
-        # self.Q = np.zeros((6, 6, 26, len(self.strategies)))
-        self.Q = np.zeros((6, 6, 7, len(self.strategies)))
+        self.Q = np.zeros((WORD_LENGTH+1, WORD_LENGTH+1, GAME_LENGTH+1, len(self.strategies)))
         self.epsilon = 0.8
         self.gamma = 0.6
         self.env = QWordle()
