@@ -1,4 +1,7 @@
+import colorama
 from colorama import Fore
+
+colorama.init()
 
 color_map = {
         -1: Fore.BLACK,
