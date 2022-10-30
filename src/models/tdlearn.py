@@ -10,7 +10,7 @@ from ..config import WORD_LENGTH, GAME_LENGTH
 import numpy as np
 from tqdm import tqdm
 
-class QLearn(BaseModel):
+class TDLearn(BaseModel):
     
     def __init__(self, config = None):
         super().__init__(config)
@@ -19,17 +19,17 @@ class QLearn(BaseModel):
         if 'Q' in config:
             self.Q = config['Q']
         else:
-            self.Q = np.zeros((WORD_LENGTH+1, WORD_LENGTH+1, GAME_LENGTH+1, len(self.strategies)))
-        self.epsilon = config['epsilon']
+            self.Q = np.zeros((WORD_LENGTH+1, WORD_LENGTH+1, GAME_LENGTH+1))
+        self.rewards = np.zeros((WORD_LENGTH+1, WORD_LENGTH+1, GAME_LENGTH+1))
+        self.transitions = np.zeros((WORD_LENGTH+1, WORD_LENGTH+1, GAME_LENGTH+1, len(self.strategies)))
         self.gamma = config['gamma']
         self.alpha = config['alpha']
         self.env = QWordle()
         self.games_solved = []
 
-    def policyFunction(self, state, epsilon):
-        action_probabilities = np.ones(len(self.strategies), dtype = float) * epsilon / len(self.strategies)       
-        best_action = np.argmax(self.Q[state['green'], state['yellow'], state['step'], :])
-        action_probabilities[best_action] += (1.0 - epsilon)
+    def policyFunction(self, state):
+        #TODO: Add Bellman equation
+        action = self.reward(state)
         return action_probabilities
    
     def train(self, iter = 100):
@@ -40,7 +40,7 @@ class QLearn(BaseModel):
             state['step'] = 0 
             done = False
             while(not done):
-                action_probabilities = self.policyFunction(state, self.epsilon*(1 - num_solved/iter))
+                action_probabilities = self.policyFunction(state)
                 action_strategy = np.random.choice(np.arange(len(action_probabilities)), p = action_probabilities)
                 action = self.strategies[action_strategy].get_action(observations)
                 action = word_to_action(action)
