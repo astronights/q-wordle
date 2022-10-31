@@ -40,16 +40,14 @@ class TDLearn(BaseModel):
             state['step'] = 0 
             done = False
             while(not done):
-                action_probabilities = self.policyFunction(state)
-                action_strategy = np.random.choice(np.arange(len(action_probabilities)), p = action_probabilities)
+                action_strategy = self.policyFunction(state)
                 action = self.strategies[action_strategy].get_action(observations)
                 action = word_to_action(action)
                 next, reward, done, res = self.env.step(action)
                 next_state = get_state(next['letters'])
                 next_state['step'] = state['step'] + 1
-                next_best_action = np.argmax(self.Q[next_state['green'], next_state['yellow'], next_state['step'],:])
-                q_target = reward + self.gamma * self.Q[next_state['green'], next_state['yellow'], next_state['step'], next_best_action]
-                self.Q[state['green'], state['yellow'], state['step'], action_strategy] = (self.alpha*q_target) + ((1-self.alpha) * self.Q[state['green'], state['yellow'], state['step'], action_strategy])
+                q_target = reward + self.gamma * self.Q[next_state['green'], next_state['yellow'], next_state['step']]
+                self.Q[state['green'], state['yellow'], state['step']] = (self.alpha*q_target) + ((1-self.alpha) * self.Q[state['green'], state['yellow'], state['step']])
                 state = next_state
             if(res['solved']):
                 num_solved += 1

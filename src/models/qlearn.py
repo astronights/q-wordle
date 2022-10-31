@@ -15,7 +15,7 @@ class QLearn(BaseModel):
     def __init__(self, config = None):
         super().__init__(config)
         self.strategies = []
-        self.strategies.extend([RandomStrategy(), HighestLLStrategy(), HighestLLSmartStrategy(), FreshLettersStrategy()])
+        self.strategies.extend([HighestLLStrategy(), HighestLLSmartStrategy(), FreshLettersStrategy()])
         if 'Q' in config:
             self.Q = config['Q']
         else:
@@ -33,6 +33,7 @@ class QLearn(BaseModel):
         return action_probabilities
    
     def train(self, iter = 100):
+        self.games_solved = []
         num_solved = 0
         for i in tqdm(range(iter)):
             observations = self.env.reset()
@@ -55,7 +56,7 @@ class QLearn(BaseModel):
                 num_solved += 1
                 self.games_solved.append(i+1)
 
-    def test(self):
+    def test(self, verbose=True):
         observations = self.env.reset()
         state = get_state(observations['letters'])
         state['step'] = 0 
@@ -69,5 +70,8 @@ class QLearn(BaseModel):
             next_state = get_state(next['letters'])
             next_state['step'] = state['step'] + 1
             state = next_state
-            self.env.render()
-        print(res)
+            if(verbose):
+                self.env.render()
+        if(verbose):
+            print(res)
+        return(res)

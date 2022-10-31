@@ -15,7 +15,7 @@ class SARSALearn(BaseModel):
     def __init__(self, config = None):
         super().__init__(config)
         self.strategies = []
-        self.strategies.extend([RandomStrategy(), HighestLLStrategy(), HighestLLSmartStrategy(), FreshLettersStrategy()])
+        self.strategies.extend([HighestLLStrategy(), HighestLLSmartStrategy(), FreshLettersStrategy()])
         if 'Q' in config:
             self.Q = config['Q']
         else:
@@ -33,6 +33,7 @@ class SARSALearn(BaseModel):
         return action_probabilities
    
     def train(self, iter = 100):
+        self.games_solved = []
         num_solved = 0
         for i in tqdm(range(iter)):
             observations = self.env.reset()
@@ -50,7 +51,7 @@ class SARSALearn(BaseModel):
 
                 next_action_probabilities = self.policyFunction(next_state, self.epsilon*(1 - num_solved/iter))
                 next_action_strategy = np.random.choice(np.arange(len(next_action_probabilities)), p = next_action_probabilities)
-                
+
                 q_target = reward + self.gamma * self.Q[next_state['green'], next_state['yellow'], next_state['step'], next_action_strategy]
                 self.Q[state['green'], state['yellow'], state['step'], action_strategy] = (self.alpha*q_target) + ((1-self.alpha) * self.Q[state['green'], state['yellow'], state['step'], action_strategy])
                 state = next_state
@@ -58,7 +59,7 @@ class SARSALearn(BaseModel):
                 num_solved += 1
                 self.games_solved.append(i+1)
 
-    def test(self):
+    def test(self, verbose=True):
         observations = self.env.reset()
         state = get_state(observations['letters'])
         state['step'] = 0 
@@ -72,5 +73,8 @@ class SARSALearn(BaseModel):
             next_state = get_state(next['letters'])
             next_state['step'] = state['step'] + 1
             state = next_state
-            self.env.render()
-        print(res)
+            if(verbose):
+                self.env.render()
+        if(verbose):
+            print(res)
+        return res

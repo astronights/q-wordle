@@ -22,5 +22,6 @@ class FreshLettersStrategy(BaseStrategy):
 
         filtered_words = [word for word in self.words if all(letter not in letters for letter in word_to_action(word))]
         if(len(filtered_words) == 0):
-            return ''.join(action_to_word(observations['guesses'][-1])).lower()
+            return random.choice(self.words)
+            # return ''.join(action_to_word(observations['guesses'][-1])).lower()
         return random.choice(filtered_words)
