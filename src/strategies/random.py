@@ -1,5 +1,6 @@
 from src.strategies.base_strategy import BaseStrategy
 
+import string
 import numpy as np
 
 from .base_strategy import BaseStrategy
@@ -14,6 +15,5 @@ class RandomStrategy(BaseStrategy):
         self.words = np.setdiff1d(valid_words.words, secret_words.secret_words)
 
     def get_action(self, observations = None):
-        past_words = [''.join(action_to_word(guess)).lower() for guess in observations['guesses']]
-        remaining_words = [word for word in self.words if word not in past_words]
-        return random.choice(remaining_words)
+        letters = string.ascii_lowercase
+        return ''.join(random.choices(letters,k=5))
