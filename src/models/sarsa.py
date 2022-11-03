@@ -10,7 +10,7 @@ from ..config import WORD_LENGTH, GAME_LENGTH
 import numpy as np
 from tqdm import tqdm
 
-class QLearn(BaseModel):
+class SARSALearn(BaseModel):
     
     def __init__(self, config = None):
         super().__init__(config)
@@ -48,8 +48,11 @@ class QLearn(BaseModel):
                 next, reward, done, res = self.env.step(action)
                 next_state = get_state(next['letters'])
                 next_state['step'] = state['step'] + 1
-                next_best_action = np.argmax(self.Q[next_state['green'], next_state['yellow'], next_state['step'],:])
-                q_target = reward + self.gamma * self.Q[next_state['green'], next_state['yellow'], next_state['step'], next_best_action]
+
+                next_action_probabilities = self.policyFunction(next_state, self.epsilon*(1 - num_solved/iter))
+                next_action_strategy = np.random.choice(np.arange(len(next_action_probabilities)), p = next_action_probabilities)
+
+                q_target = reward + self.gamma * self.Q[next_state['green'], next_state['yellow'], next_state['step'], next_action_strategy]
                 self.Q[state['green'], state['yellow'], state['step'], action_strategy] = (self.alpha*q_target) + ((1-self.alpha) * self.Q[state['green'], state['yellow'], state['step'], action_strategy])
                 state = next_state
             if(res['solved']):
@@ -74,4 +77,4 @@ class QLearn(BaseModel):
                 self.env.render()
         if(verbose):
             print(res)
-        return(res)
+        return res

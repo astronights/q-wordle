@@ -6,7 +6,7 @@ from colorama import Style
 
 from collections import Counter
 
-from ..data import valid_words
+from ..data import valid_words, secret_words
 from ..data import colors
 from ..utils import action_to_word, word_to_action
 from ..config import WORD_LENGTH, GAME_LENGTH, WIN_REWARD, LOSE_REWARD, GREEN_REWARD, YELLOW_REWARD, GREY_REWARD
@@ -32,7 +32,7 @@ class QWordle(gym.Env):
         Reset the environment.
         """
         self.guesses = []
-        self.solution_word = random.choice(valid_words.words)
+        self.solution_word = random.choice(secret_words.secret_words)
         self.solution = word_to_action(self.solution_word)
         self.board = np.full((GAME_LENGTH, WORD_LENGTH), -1)
         self.letters = np.full((26,), -1)
@@ -99,6 +99,7 @@ class QWordle(gym.Env):
         Render the environment.
         """
         print("++++++++++++++++++++++++++++++")
+        print(f"Solution: {self.solution_word}")
         for i, guess in enumerate(self.guesses):
             word = action_to_word(guess)
             for j in range(WORD_LENGTH):
