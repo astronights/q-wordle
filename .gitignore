@@ -35,6 +35,10 @@ MANIFEST
 *.manifest
 *.spec
 
+# Wandb stuff
+src/second_dqn_a2c/deep_rl/wandb/
+src/second_dqn_a2c/deep_rl/runs/
+
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
