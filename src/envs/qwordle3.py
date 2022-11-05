@@ -8,12 +8,12 @@ from collections import Counter
 
 from ..data import valid_words, secret_words
 from ..data import colors
-from ..utils import action_to_word, word_to_action
+from ..utils import action_to_word, word_to_action, get_state
 from ..config import WORD_LENGTH, GAME_LENGTH, WIN_REWARD, LOSE_REWARD, GREEN_REWARD, YELLOW_REWARD, GREY_REWARD
 
 from ..strategies import base_strategy, fresh_letters_strategy, highest_ll_strategy, highest_ll_smart_strategy
 
-class QWordle2(gym.Env):
+class QWordle3(gym.Env):
     """
     Class to implement a gym environment for Wordle.
     """
@@ -23,11 +23,7 @@ class QWordle2(gym.Env):
         Initialize the environment.
         """
         self.action_space = spaces.Discrete(3)
-        self.observation_space = spaces.Dict({
-            'board': spaces.Box(low=-1, high=2, shape=(GAME_LENGTH, WORD_LENGTH), dtype=np.int8),
-            'guesses': spaces.Box(low=0, high=26, shape=(GAME_LENGTH, WORD_LENGTH), dtype=np.int8),
-            'letters': spaces.Box(low=-1, high=2, shape=(26,), dtype=np.int8)
-        })
+        self.observation_space = spaces.MultiDiscrete(np.asarray([5,5,5]))
 
 
 
@@ -46,7 +42,7 @@ class QWordle2(gym.Env):
         self.solution = word_to_action(self.solution_word)
         self.board = np.full((GAME_LENGTH, WORD_LENGTH), -1)
         self.letters = np.full((26,), -1)
-        return {'board': self.board, 'guesses': self.guesses, 'letters': self.letters}
+        return np.asarray([0, 0, 0])
 
     def _check_guess(self, solution, pred):
         """
@@ -111,7 +107,9 @@ class QWordle2(gym.Env):
 
         self.guesses[game_row] = word
 
-        return({'board': self.board, 'guesses': self.guesses, 'letters': self.letters}, reward, done, {'solved': solved})
+        updated_state = np.asarray(list(get_state(self.letters).values())+[game_row])
+
+        return(updated_state, reward, done, {'solved': solved})
 
     def render(self):
         """
