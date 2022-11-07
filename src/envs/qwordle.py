@@ -99,7 +99,6 @@ class QWordle(gym.Env):
         Render the environment.
         """
         print("++++++++++++++++++++++++++++++")
-        print(f"Solution: {self.solution_word}")
         for i, guess in enumerate(self.guesses):
             word = action_to_word(guess)
             for j in range(WORD_LENGTH):

@@ -9,7 +9,7 @@ def main():
     model = qlearn.QLearn({'epsilon': 0.8, 'gamma': 0.6, 'alpha': 0.5})
     # model = sarsa.SARSALearn({'epsilon': 0.8, 'gamma': 0.6, 'alpha': 0.5})
     model.train(100)
-    model.test()
+    model.test(verbose=True)
     print(f"Games solved: {model.games_solved}, # Solved: {len(model.games_solved)}")
     q_table = model.Q
     actions = pd.DataFrame(columns=['# Green', '# Yellow', 'Game State', 'Action'])

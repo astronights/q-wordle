@@ -7,6 +7,9 @@ from ..envs.qwordle import QWordle
 from ..utils import get_state, word_to_action
 from ..config import WORD_LENGTH, GAME_LENGTH
 
+import os
+import pickle
+
 import numpy as np
 from tqdm import tqdm
 
@@ -25,6 +28,9 @@ class SARSALearn(BaseModel):
         self.alpha = config['alpha']
         self.env = QWordle()
         self.games_solved = []
+
+    def update_q(self, q):
+        self.Q = q
 
     def policyFunction(self, state, epsilon):
         action_probabilities = np.ones(len(self.strategies), dtype = float) * epsilon / len(self.strategies)       
@@ -59,7 +65,11 @@ class SARSALearn(BaseModel):
                 num_solved += 1
                 self.games_solved.append(i+1)
 
+        pickle.dump({'Q': self.Q}, open('sarsa.pkl', 'wb'))
+
     def test(self, verbose=True):
+        if(os.path.exists('sarsa.pkl')):
+            self.Q = pickle.load(open('sarsa.pkl', 'rb'))['Q']
         observations = self.env.reset()
         state = get_state(observations['letters'])
         state['step'] = 0 

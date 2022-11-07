@@ -5,11 +5,11 @@ from stable_baselines3.common.env_util import make_vec_env
 from ..config import WIN_REWARD, LOSE_REWARD
 
 import numpy as np
-from stable_baselines3 import DQN
+from stable_baselines3 import DQN, A2C
 
 from ..envs.qwordle3 import QWordle3
 
-class DQNModel(BaseModel):
+class A2CModel(BaseModel):
 
     def __init__(self, config = None):
         super().__init__(config)
@@ -19,39 +19,28 @@ class DQNModel(BaseModel):
         self.games_solved = []
 
     def train(self, iter = 100):
-        self.games_solved = []
         env = gym.make("QWordle3-v0")
-        model = DQN(
-            "MlpPolicy", 
-            env,
-            gamma=self.gamma, 
-            learning_rate=self.alpha,
-            learning_starts=10000,
-            buffer_size=6*iter,
-            exploration_fraction=self.epsilon,
-            exploration_final_eps=0.5,
-            target_update_interval=1000,
-            train_freq=1,
-            verbose=1,
-        )
+        model = A2C("MlpPolicy", env, verbose=1)
+        model.learn(total_timesteps=6*iter, log_interval=1000)
         try:
             model.learn(total_timesteps=6*iter, log_interval=1)
         except KeyboardInterrupt:
             pass
-        counter = 0
         rewards = model.replay_buffer.rewards
+
+        # Get the index of the games solved:
+        counter = 0
         for reward in rewards:
-            if reward[0] == 30:
+            if reward == 30:
                 self.games_solved.append(counter)
-            if reward[0] == WIN_REWARD or reward[0] == LOSE_REWARD:
+            if reward == WIN_REWARD or reward == LOSE_REWARD:
                 counter += 1
-        # print(model.q_net)
-        model.save("wordle_dqn")
+        model.save("wordle_a2c")
         return model
 
     def test(self, verbose=True):
 
-        model = DQN.load("wordle_dqn")
+        model = A2C.load("wordle_a2c")
 
         env = QWordle3()
         obs = env.reset()

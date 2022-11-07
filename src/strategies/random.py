@@ -15,5 +15,6 @@ class RandomStrategy(BaseStrategy):
         self.words = np.setdiff1d(valid_words.words, secret_words.secret_words)
 
     def get_action(self, observations = None):
-        letters = string.ascii_lowercase
-        return ''.join(random.choices(letters,k=5))
+        return random.choice(self.words)
+        # letters = string.ascii_lowercase
+        # return ''.join(random.choices(letters,k=5))

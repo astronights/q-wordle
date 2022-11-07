@@ -7,6 +7,9 @@ from ..envs.qwordle import QWordle
 from ..utils import get_state, word_to_action
 from ..config import WORD_LENGTH, GAME_LENGTH
 
+import os
+import pickle
+
 import numpy as np
 from tqdm import tqdm
 
@@ -15,16 +18,19 @@ class QLearn(BaseModel):
     def __init__(self, config = None):
         super().__init__(config)
         self.strategies = []
-        self.strategies.extend([HighestLLStrategy(), HighestLLSmartStrategy(), FreshLettersStrategy()])
-        if 'Q' in config:
+        self.strategies.extend([RandomStrategy(), HighestLLStrategy(), HighestLLSmartStrategy(), FreshLettersStrategy()])
+        if config and 'Q' in config:
             self.Q = config['Q']
+            self.epsilon = config['epsilon']
+            self.gamma = config['gamma']
+            self.alpha = config['alpha']
         else:
             self.Q = np.zeros((WORD_LENGTH+1, WORD_LENGTH+1, GAME_LENGTH+1, len(self.strategies)))
-        self.epsilon = config['epsilon']
-        self.gamma = config['gamma']
-        self.alpha = config['alpha']
         self.env = QWordle()
         self.games_solved = []
+
+    def update_q(self, q):
+        self.Q = q
 
     def policyFunction(self, state, epsilon):
         action_probabilities = np.ones(len(self.strategies), dtype = float) * epsilon / len(self.strategies)       
@@ -56,7 +62,11 @@ class QLearn(BaseModel):
                 num_solved += 1
                 self.games_solved.append(i+1)
 
+        pickle.dump({'Q': self.Q}, open('qlearn.pkl', 'wb'))
+
     def test(self, verbose=True):
+        if(os.path.exists('qlearn.pkl')):
+            self.Q = pickle.load(open('qlearn.pkl', 'rb'))['Q']
         observations = self.env.reset()
         state = get_state(observations['letters'])
         state['step'] = 0 
