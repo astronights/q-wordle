@@ -1,15 +1,14 @@
 import gym
 import sys
 from src.models.base_model import BaseModel
-from stable_baselines3.common.env_util import make_vec_env
 from ..config import WIN_REWARD, LOSE_REWARD
 
 import numpy as np
 from stable_baselines3 import DQN
 
-from ..envs.qwordle3 import QWordle3
+from ..envs.qwordle import QWordle
 
-class DQNModel(BaseModel):
+class DQNLearn(BaseModel):
 
     def __init__(self, config = None):
         super().__init__(config)
@@ -17,13 +16,14 @@ class DQNModel(BaseModel):
         self.gamma = config['gamma']
         self.alpha = config['alpha']
         self.games_solved = []
+        self.env = QWordle()
 
     def train(self, iter = 100):
         self.games_solved = []
-        env = gym.make("QWordle3-v0")
+        self.env.reset()
         model = DQN(
             "MlpPolicy", 
-            env,
+            self.env,
             gamma=self.gamma, 
             learning_rate=self.alpha,
             learning_starts=10000,
@@ -45,7 +45,7 @@ class DQNModel(BaseModel):
                 self.games_solved.append(counter)
             if reward[0] == WIN_REWARD or reward[0] == LOSE_REWARD:
                 counter += 1
-        # print(model.q_net)
+
         model.save("wordle_dqn")
         return model
 
@@ -53,14 +53,13 @@ class DQNModel(BaseModel):
 
         model = DQN.load("wordle_dqn")
 
-        env = QWordle3()
-        obs = env.reset()
+        obs = self.env.reset()
         done = False
         while not done:
             action, _states = model.predict(obs)
-            obs, rewards, done, res = env.step(action)
+            obs, rewards, done, res = self.env.step(action)
             if(verbose):
-                env.render()
+                self.env.render()
         if(verbose):
             print(res)
         return(res)

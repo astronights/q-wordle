@@ -6,10 +6,12 @@ from colorama import Style
 
 from collections import Counter
 
-from ..data import valid_words, secret_words
+from ..data import secret_words
 from ..data import colors
-from ..utils import action_to_word, word_to_action
+from ..utils import action_to_word, word_to_action, get_state
 from ..config import WORD_LENGTH, GAME_LENGTH, WIN_REWARD, LOSE_REWARD, GREEN_REWARD, YELLOW_REWARD, GREY_REWARD
+
+from ..strategies import random_strategy, fresh_letters_strategy, highest_ll_strategy, highest_ll_smart_strategy
 
 class QWordle(gym.Env):
     """
@@ -20,23 +22,26 @@ class QWordle(gym.Env):
         """
         Initialize the environment.
         """
-        self.action_space = spaces.MultiDiscrete([26] * WORD_LENGTH)
-        self.observation_space = spaces.Dict({
-            'board': spaces.Box(low=-1, high=2, shape=(GAME_LENGTH, WORD_LENGTH), dtype=np.int8),
-            'guesses': spaces.Box(low=0, high=26, shape=(GAME_LENGTH, WORD_LENGTH), dtype=np.int8),
-            'letters': spaces.Box(low=-1, high=2, shape=(26,), dtype=np.int8)
-        })
+        self.action_space = spaces.Discrete(3)
+        self.observation_space = spaces.MultiDiscrete(np.asarray([5,5,5]))
+
+        self.strategies = {
+            # 'random': random_strategy.RandomStrategy(),
+            'fresh_letters': fresh_letters_strategy.FreshLettersStrategy(),
+            'highest_ll': highest_ll_strategy.HighestLLStrategy(),
+            'highest_ll_smart': highest_ll_smart_strategy.HighestLLSmartStrategy()
+        }
 
     def reset(self):
         """
         Reset the environment.
         """
-        self.guesses = []
+        self.guesses = np.full((GAME_LENGTH, WORD_LENGTH), -1)
         self.solution_word = random.choice(secret_words.secret_words)
         self.solution = word_to_action(self.solution_word)
         self.board = np.full((GAME_LENGTH, WORD_LENGTH), -1)
         self.letters = np.full((26,), -1)
-        return {'board': self.board, 'guesses': self.guesses, 'letters': self.letters}
+        return np.asarray([0, 0, 0])
 
     def _check_guess(self, solution, pred):
         """
@@ -66,33 +71,42 @@ class QWordle(gym.Env):
         """
         reward = None
         done = False
-        res = self._check_guess(self.solution, action)
-        self.board[len(self.guesses)] = res
+        try:
+            strategy = self.strategies[action]
+        except:
+            strategy = list(self.strategies.values())[action]
+        word = strategy.get_action({'board': self.board, 'guesses': self.guesses, 'letters': self.letters})
+        word = word_to_action(word)
+        res = self._check_guess(self.solution, word)
+        game_row = np.where(self.board == -1)[0][0]
+        self.board[game_row] = res
 
         for i, x in enumerate(res):
             if x == 2:
-                self.letters[action[i]] = 2
+                self.letters[word[i]] = 2
             elif x == 1:
-                if(self.letters[action[i]] < 2):
-                    self.letters[action[i]] = 1
+                if(self.letters[word[i]] < 2):
+                    self.letters[word[i]] = 1
             else:
-                if(self.letters[action[i]] < 1):
-                    self.letters[action[i]] = 0
+                if(self.letters[word[i]] < 1):
+                    self.letters[word[i]] = 0
 
         solved = False
-        if(np.all(self.board[len(self.guesses)] == 2)):
+        if(np.all(self.board[game_row] == 2)):
             reward = WIN_REWARD
             done = True
             solved = True
-        elif(len(self.guesses) == GAME_LENGTH - 1):
+        elif(game_row == GAME_LENGTH - 1):
             reward = LOSE_REWARD
             done = True
         else:
             reward = res.count(2)*GREEN_REWARD + res.count(1)*YELLOW_REWARD - res.count(0)*GREY_REWARD
 
-        self.guesses.append(action)
+        self.guesses[game_row] = word
 
-        return({'board': self.board, 'guesses': self.guesses, 'letters': self.letters}, reward, done, {'solved': solved})
+        updated_state = np.asarray(list(get_state(self.letters).values())+[game_row])
+
+        return(updated_state, reward, done, {'solved': solved})
 
     def render(self):
         """
