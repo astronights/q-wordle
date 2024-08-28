@@ -39,3 +39,9 @@ The actions here are not the words to pick, but rather the strategies to use to 
 - Highest Log Likelihood Word
 - Improve Guess
 - Explore New Letters
+
+## Results
+
+WIth a combination of the strategies, the Q Learning Agent performs adequately well and we see a success rate of 80% across 20,000 trials of the Reinforcement Learning Algorithm.
+
+Moreover, examining the final policy after learning completes turns out to be in accordance with how one would expect a seasoned WOrdle player to make guesses indicating a successful learning methodology undertaken by the algorithm.
