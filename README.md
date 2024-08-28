@@ -19,6 +19,10 @@ The gameplay for Wordle is replicated with the exact same set of rules as the or
 - A correct letter but in the wrong position (from the remaining letter) is marked as yellow
 - Incorrect letters are marked as grey.
 
+### Data
+
+As part of the gameplay, the entire corpus of 5 letter English language words are used.
+
 ## Environment
 
 A robust environment is setup after identifying the optimum action and state spaces, minimizing complexity and ensuring all functionalities are adequately captured.
