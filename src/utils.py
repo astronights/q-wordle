@@ -35,17 +35,18 @@ def get_state(letters):
         else:
             pass
     return state
-'''
-Description:
-Compute the probabilities of each letter being green at a position
 
-Parameters:
-words: string[], the words for which to get loglikehood values 
-
-Returns:
-prb: float[][], the probability table
-'''
 def calculate_glp(words):
+    '''
+    Description:
+    Compute the probabilities of each letter being green at a position
+    
+    Parameters:
+    words: string[], the words for which to get loglikehood values 
+    
+    Returns:
+    prb: float[][], the probability table
+    '''
     count = len(words)
     prb = [[0 for _ in range(5)] for _ in range(26)]
 
@@ -65,64 +66,64 @@ def calculate_glp(words):
                 prb[letter][pos] = prb[letter][pos]/count
     return prb
 
-'''
-Description:
-Compute the loglikelihood value of a given word being green
-
-Parameters:
-words: string[], the words for which to get loglikehood values
-prb: float, probability table 
-
-Returns:
-a dictionary where each (key, value) pair is ("word": "loglikelihood_value")
-'''
 def calculate_LL(words, prb):
+    '''
+    Description:
+    Compute the loglikelihood value of a given word being green
+    
+    Parameters:
+    words: string[], the words for which to get loglikehood values
+    prb: float, probability table 
+    
+    Returns:
+    a dictionary where each (key, value) pair is ("word": "loglikelihood_value")
+    '''
     return {word:sum([math.log(prb[letter][pos]) for pos, letter in enumerate(word_to_action(word))]) for word in words}
 
-'''
-Description:
-Check if a given word can be used as candidate for smart selection
-
-Parameters:
-words: string, the word given
-d: dict, dictionary where each (key, value) pair is ("letter": "letter_pos")
-
-Returns:
-boolean value indicating whether it is candidate or not
-'''
 def is_candidate(word, d):
+    '''
+    Description:
+    Check if a given word can be used as candidate for smart selection
+    
+    Parameters:
+    words: string, the word given
+    d: dict, dictionary where each (key, value) pair is ("letter": "letter_pos")
+    
+    Returns:
+    boolean value indicating whether it is candidate or not
+    '''
     for letter, pos in d.items(): 
         if word[pos] != letter: return False
     return True 
 
-'''
-Description:
-Retrieve the next word with highest loglikelihood without previous info
-
-Parameters:
-words: string[], the list of words for selection of the next word
-prb: probability table for each letter being green at a position
-
-Returns:
-next word with highest loglikelihood
-'''
 def next_highest_LL(words, prb):
+    '''
+    Description:
+    Retrieve the next word with highest loglikelihood without previous info
+    
+    Parameters:
+    words: string[], the list of words for selection of the next word
+    prb: probability table for each letter being green at a position
+    
+    Returns:
+    next word with highest loglikelihood
+    '''
     lls = calculate_LL(words, prb)
     return max(lls, key=lls.get)
 
-'''
-Description:
-Retrieve the next word with highest loglikelihood with previous info
-
-Parameters:
-words: string[], the list of words for selection of the next word
-d: dict, dictionary where each (key, value) pair is ("letter": "letter_pos")
-prb: probability table for each letter being green at a position
-
-Returns:
-next word with highest loglikelihood
-'''
 def next_highest_LL_smart(words, d, prb):
+    '''
+    Description:
+    Retrieve the next word with highest loglikelihood with previous info
+    
+    Parameters:
+    words: string[], the list of words for selection of the next word
+    d: dict, dictionary where each (key, value) pair is ("letter": "letter_pos")
+    prb: probability table for each letter being green at a position
+    
+    Returns:
+    next word with highest loglikelihood
+    '''
     lls = calculate_LL([word for word in words if is_candidate(word, d)], prb)
     return max(lls, key=lls.get)
 
